@@ -23,6 +23,11 @@ const User = require('./models/User');
 const VentaCurso = require('./models/VentaCurso');
 const VentaMatricula = require('./models/VentaMatricula');
 
+// Near your mongoose.connect
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('Connected to MongoDB successfully'))
+  .catch(err => console.error('MongoDB connection error:', err));
+
 // Routes
 
 // Rutas para clientes
@@ -152,7 +157,7 @@ app.get('/api/usuarios', async (req, res) => {
 });
 
 // Rutas para ventas de cursos
-app.post('/api/ventas-cursos', async (req, res) => {
+app.post('/api/ventacurso', async (req, res) => {
     try {
         const ventaCurso = new VentaCurso(req.body);
         await ventaCurso.save();
@@ -163,7 +168,7 @@ app.post('/api/ventas-cursos', async (req, res) => {
 });
 
 // Ruta para listar todas las ventas de cursos
-app.get('/api/ventas-cursos', async (req, res) => {
+app.get('/api/ventacurso', async (req, res) => {
     try {
         const ventasCursos = await VentaCurso.find();
         res.json(ventasCursos);
@@ -173,7 +178,7 @@ app.get('/api/ventas-cursos', async (req, res) => {
 });
 
 // Rutas para ventas de matrículas
-app.post('/api/ventas-matriculas', async (req, res) => {
+app.post('/api/ventamatricula', async (req, res) => {
     try {
         const ventaMatricula = new VentaMatricula(req.body);
         await ventaMatricula.save();
@@ -184,7 +189,7 @@ app.post('/api/ventas-matriculas', async (req, res) => {
 });
 
 // Ruta para listar todas las ventas de matrículas
-app.get('/api/ventas-matriculas', async (req, res) => {
+app.get('/api/ventamatricula', async (req, res) => {
     try {
         const ventasMatriculas = await VentaMatricula.find();
         res.json(ventasMatriculas);
@@ -218,6 +223,20 @@ app.get('/test', async (req, res) => {
         res.json({ message: 'Database connected!', collections: collections.map(c => c.name) });
     } catch (error) {
         res.status(500).json({ error: 'Database connection failed', details: error.message });
+    }
+});
+
+// Add this route to check your database collections
+app.get('/api/debug', async (req, res) => {
+    try {
+        const collections = await mongoose.connection.db.listCollections().toArray();
+        const collectionNames = collections.map(c => c.name);
+        res.json({
+            collections: collectionNames,
+            dbName: mongoose.connection.db.databaseName
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 });
 

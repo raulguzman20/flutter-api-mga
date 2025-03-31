@@ -1,22 +1,10 @@
 const mongoose = require('mongoose');
 
 const ventaMatriculaSchema = new mongoose.Schema({
-    cliente: {
-        type: String,
-        required: true
-    },
-    estudiante: {
-        type: String,
-        required: true
-    },
-    fecha_inicio: {
-        type: Date,
-        required: true
-    },
-    fecha_fin: {
-        type: Date,
-        required: true
-    }
+    matricula: { type: mongoose.Schema.Types.ObjectId, ref: 'Matricula' },
+    estudiante: { type: mongoose.Schema.Types.ObjectId, ref: 'Estudiante' },
+    fecha: { type: Date, default: Date.now },
+    precio: Number
 });
 
-module.exports = mongoose.model('VentaMatricula', ventaMatriculaSchema);
+module.exports = mongoose.model('VentaMatricula', ventaMatriculaSchema, 'ventamatricula');
