@@ -121,17 +121,20 @@ app.post('/api/profesores', async (req, res) => {
         await profesor.save();
         res.json(profesor);
     } catch (error) {
-        res.status(500).json({ message: 'Error al crear el profesor', error: error.message });
+        res.status(500).json({ message: 'Error al crear profesor', error: error.message });
     }
 });
 
 // Ruta para listar todos los profesores
 app.get('/api/profesores', async (req, res) => {
     try {
+        console.log('Fetching profesores...');
         const profesores = await Profesor.find();
+        console.log('Profesores found:', profesores);
         res.json(profesores);
     } catch (error) {
-        res.status(500).json({ message: 'Error al obtener los profesores', error: error.message });
+        console.error('Error fetching profesores:', error);
+        res.status(500).json({ message: 'Error al obtener profesores', error: error.message });
     }
 });
 
@@ -192,9 +195,44 @@ app.post('/api/ventamatricula', async (req, res) => {
 app.get('/api/ventamatricula', async (req, res) => {
     try {
         const ventasMatriculas = await VentaMatricula.find();
-        res.json(ventasMatriculas);
+        const formattedVentas = ventasMatriculas.map(venta => {
+            return {
+                _id: venta._id,
+                cliente: venta.cliente || 'Sin cliente',
+                estudiante: venta.estudiante || 'Sin estudiante',
+                fecha_inicio: venta.fecha_inicio ? venta.fecha_inicio.toISOString().split('T')[0] : '',
+                fecha_fin: venta.fecha_fin ? venta.fecha_fin.toISOString().split('T')[0] : ''
+            };
+        });
+        res.json(formattedVentas);
     } catch (error) {
-        res.status(500).json({ message: 'Error al obtener las ventas de matrículas', error: error.message });
+        console.error('Error detallado:', error);
+        res.status(500).json({ 
+            message: 'Error al obtener las ventas de matrículas', 
+            error: error.message 
+        });
+    }
+});
+
+// POST route for ventamatricula
+app.post('/api/ventamatricula', async (req, res) => {
+    try {
+        const ventaMatricula = new VentaMatricula({
+            cliente: req.body.cliente,
+            estudiante: req.body.estudiante,
+            fecha_inicio: new Date(req.body.fecha_inicio),
+            fecha_fin: new Date(req.body.fecha_fin)
+        });
+        await ventaMatricula.save();
+        const formatted = {
+            cliente: ventaMatricula.cliente,
+            estudiante: ventaMatricula.estudiante,
+            fecha_inicio: ventaMatricula.fecha_inicio.toISOString().split('T')[0],
+            fecha_fin: ventaMatricula.fecha_fin.toISOString().split('T')[0]
+        };
+        res.json(formatted);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al crear la venta de matrícula', error: error.message });
     }
 });
 
