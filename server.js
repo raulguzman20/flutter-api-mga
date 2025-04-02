@@ -236,6 +236,221 @@ app.post('/api/ventamatricula', async (req, res) => {
     }
 });
 
+// Clientes - Delete and Update routes
+app.delete('/api/clientes/:id', async (req, res) => {
+    try {
+        const cliente = await Cliente.findByIdAndDelete(req.params.id);
+        if (!cliente) {
+            return res.status(404).json({ message: 'Cliente no encontrado' });
+        }
+        res.json({ message: 'Cliente eliminado correctamente' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al eliminar el cliente', error: error.message });
+    }
+});
+
+app.put('/api/clientes/:id', async (req, res) => {
+    try {
+        const cliente = await Cliente.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!cliente) {
+            return res.status(404).json({ message: 'Cliente no encontrado' });
+        }
+        res.json(cliente);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al actualizar el cliente', error: error.message });
+    }
+});
+
+// Asistencias - Delete and Update routes
+app.delete('/api/asistencias/:id', async (req, res) => {
+    try {
+        const asistencia = await Asistencia.findByIdAndDelete(req.params.id);
+        if (!asistencia) {
+            return res.status(404).json({ message: 'Asistencia no encontrada' });
+        }
+        res.json({ message: 'Asistencia eliminada correctamente' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al eliminar la asistencia', error: error.message });
+    }
+});
+
+app.put('/api/asistencias/:id', async (req, res) => {
+    try {
+        const asistencia = await Asistencia.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!asistencia) {
+            return res.status(404).json({ message: 'Asistencia no encontrada' });
+        }
+        res.json(asistencia);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al actualizar la asistencia', error: error.message });
+    }
+});
+
+// Aulas - Delete and Update routes
+app.delete('/api/aulas/:id', async (req, res) => {
+    try {
+        const aula = await Aula.findByIdAndDelete(req.params.id);
+        if (!aula) {
+            return res.status(404).json({ message: 'Aula no encontrada' });
+        }
+        res.json({ message: 'Aula eliminada correctamente' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al eliminar el aula', error: error.message });
+    }
+});
+
+app.put('/api/aulas/:id', async (req, res) => {
+    try {
+        const aula = await Aula.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!aula) {
+            return res.status(404).json({ message: 'Aula no encontrada' });
+        }
+        res.json(aula);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al actualizar el aula', error: error.message });
+    }
+});
+
+// Estudiantes - Delete and Update routes
+app.delete('/api/estudiantes/:id', async (req, res) => {
+    try {
+        const estudiante = await Estudiante.findByIdAndDelete(req.params.id);
+        if (!estudiante) {
+            return res.status(404).json({ message: 'Estudiante no encontrado' });
+        }
+        res.json({ message: 'Estudiante eliminado correctamente' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al eliminar el estudiante', error: error.message });
+    }
+});
+
+app.put('/api/estudiantes/:id', async (req, res) => {
+    try {
+        const estudiante = await Estudiante.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!estudiante) {
+            return res.status(404).json({ message: 'Estudiante no encontrado' });
+        }
+        res.json(estudiante);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al actualizar el estudiante', error: error.message });
+    }
+});
+
+// Profesores - Delete and Update routes
+app.delete('/api/profesores/:id', async (req, res) => {
+    try {
+        const profesor = await Profesor.findByIdAndDelete(req.params.id);
+        if (!profesor) {
+            return res.status(404).json({ message: 'Profesor no encontrado' });
+        }
+        res.json({ message: 'Profesor eliminado correctamente' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al eliminar el profesor', error: error.message });
+    }
+});
+
+app.put('/api/profesores/:id', async (req, res) => {
+    try {
+        const profesor = await Profesor.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!profesor) {
+            return res.status(404).json({ message: 'Profesor no encontrado' });
+        }
+        res.json(profesor);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al actualizar el profesor', error: error.message });
+    }
+});
+
+// Usuarios - Delete and Update routes
+app.delete('/api/usuarios/:id', async (req, res) => {
+    try {
+        const usuario = await User.findByIdAndDelete(req.params.id);
+        if (!usuario) {
+            return res.status(404).json({ message: 'Usuario no encontrado' });
+        }
+        res.json({ message: 'Usuario eliminado correctamente' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al eliminar el usuario', error: error.message });
+    }
+});
+
+app.put('/api/usuarios/:id', async (req, res) => {
+    try {
+        const usuario = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!usuario) {
+            return res.status(404).json({ message: 'Usuario no encontrado' });
+        }
+        res.json(usuario);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al actualizar el usuario', error: error.message });
+    }
+});
+
+// VentaCurso - Delete and Update routes
+app.delete('/api/ventacurso/:id', async (req, res) => {
+    try {
+        const ventaCurso = await VentaCurso.findByIdAndDelete(req.params.id);
+        if (!ventaCurso) {
+            return res.status(404).json({ message: 'Venta de curso no encontrada' });
+        }
+        res.json({ message: 'Venta de curso eliminada correctamente' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al eliminar la venta del curso', error: error.message });
+    }
+});
+
+app.put('/api/ventacurso/:id', async (req, res) => {
+    try {
+        const ventaCurso = await VentaCurso.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!ventaCurso) {
+            return res.status(404).json({ message: 'Venta de curso no encontrada' });
+        }
+        res.json(ventaCurso);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al actualizar la venta del curso', error: error.message });
+    }
+});
+
+// VentaMatricula - Delete and Update routes
+app.delete('/api/ventamatricula/:id', async (req, res) => {
+    try {
+        const ventaMatricula = await VentaMatricula.findByIdAndDelete(req.params.id);
+        if (!ventaMatricula) {
+            return res.status(404).json({ message: 'Venta de matrícula no encontrada' });
+        }
+        res.json({ message: 'Venta de matrícula eliminada correctamente' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al eliminar la venta de matrícula', error: error.message });
+    }
+});
+
+app.put('/api/ventamatricula/:id', async (req, res) => {
+    try {
+        const ventaMatricula = await VentaMatricula.findByIdAndUpdate(
+            req.params.id,
+            {
+                cliente: req.body.cliente,
+                estudiante: req.body.estudiante,
+                fecha_inicio: new Date(req.body.fecha_inicio),
+                fecha_fin: new Date(req.body.fecha_fin)
+            },
+            { new: true }
+        );
+        if (!ventaMatricula) {
+            return res.status(404).json({ message: 'Venta de matrícula no encontrada' });
+        }
+        const formatted = {
+            cliente: ventaMatricula.cliente,
+            estudiante: ventaMatricula.estudiante,
+            fecha_inicio: ventaMatricula.fecha_inicio.toISOString().split('T')[0],
+            fecha_fin: ventaMatricula.fecha_fin.toISOString().split('T')[0]
+        };
+        res.json(formatted);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al actualizar la venta de matrícula', error: error.message });
+    }
+});
+
 app.get('/', async (req, res) => {
     try {
         const collections = await mongoose.connection.db.listCollections().toArray();
