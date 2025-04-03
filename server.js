@@ -432,3 +432,67 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
+
+// Asistencia POST route
+app.post('/api/asistencia', async (req, res) => {
+    try {
+        const result = await mongoose.connection.db
+            .collection('asistencia')
+            .insertOne(req.body);
+        res.json({ message: 'Asistencia creada', data: req.body });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al crear asistencia', error: error.message });
+    }
+});
+
+// VentaCurso POST route
+app.post('/api/ventacurso', async (req, res) => {
+    try {
+        const result = await mongoose.connection.db
+            .collection('ventacurso')
+            .updateOne(
+                {},
+                { $push: { venta_cursos: req.body } },
+                { upsert: true }
+            );
+        res.json({ message: 'Venta de curso creada', data: req.body });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al crear venta de curso', error: error.message });
+    }
+});
+
+// VentaMatricula POST route
+app.post('/api/ventamatricula', async (req, res) => {
+    try {
+        const result = await mongoose.connection.db
+            .collection('ventamatricula')
+            .insertOne(req.body);
+        res.json({ message: 'Matrícula creada', data: req.body });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al crear matrícula', error: error.message });
+    }
+});
+
+// Aulas POST route
+app.post('/api/aulas', async (req, res) => {
+    try {
+        const result = await mongoose.connection.db
+            .collection('aulas')
+            .insertOne(req.body);
+        res.json({ message: 'Aula creada', data: req.body });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al crear aula', error: error.message });
+    }
+});
+
+// Usuarios POST route
+app.post('/api/usuarios', async (req, res) => {
+    try {
+        const result = await mongoose.connection.db
+            .collection('usuarios')
+            .insertOne(req.body);
+        res.json({ message: 'Usuario creado', data: req.body });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al crear usuario', error: error.message });
+    }
+});
