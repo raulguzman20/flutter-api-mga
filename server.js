@@ -390,9 +390,10 @@ app.get('/api/usuarios', async (req, res) => {
 
         const formattedUsuarios = usuarios.map(usuario => ({
             nombre: usuario.nombre,
-            email: usuario.email,
-            password: usuario.password,
-            rol: usuario.rol
+            telefono: usuario.telefono,
+            correo: usuario.correo,
+            rol: usuario.rol,
+            estado: usuario.estado
         }));
 
         res.json(formattedUsuarios);
