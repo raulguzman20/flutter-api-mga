@@ -1,7 +1,7 @@
 const express = require('express');
 const connectDB = require('./config/db');
 const cors = require('cors');
-const mongoose = require('mongoose'); // Add this line
+const mongoose = require('mongoose');
 require('dotenv').config();
 
 const app = express();
@@ -23,46 +23,12 @@ const User = require('./models/User');
 const VentaCurso = require('./models/VentaCurso');
 const VentaMatricula = require('./models/VentaMatricula');
 
-// Near your mongoose.connect
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('Connected to MongoDB successfully'))
-  .catch(err => console.error('MongoDB connection error:', err));
+    .then(() => console.log('Connected to MongoDB successfully'))
+    .catch(err => console.error('MongoDB connection error:', err));
 
-// Routes
-
-// Rutas para clientes
-app.post('/api/clientes', async (req, res) => {
-    try {
-        const cliente = new Cliente(req.body);
-        await cliente.save();
-        res.json(cliente);
-    } catch (error) {
-        res.status(500).json({ message: 'Error al crear el cliente', error: error.message });
-    }
-});
-
-// Ruta para listar todos los clientes
-app.get('/api/clientes', async (req, res) => {
-    try {
-        const clientes = await Cliente.find();
-        res.json(clientes);
-    } catch (error) {
-        res.status(500).json({ message: 'Error al obtener los clientes', error: error.message });
-    }
-});
-
-// Rutas para asistencias
-app.post('/api/asistencias', async (req, res) => {
-    try {
-        const asistencia = new Asistencia(req.body);
-        await asistencia.save();
-        res.json(asistencia);
-    } catch (error) {
-        res.status(500).json({ message: 'Error al crear la asistencia', error: error.message });
-    }
-});
-
-// Ruta para listar todas las asistencias
+// Asistencia Routes
+// Remove this duplicate route (it appears twice in your code)
 app.get('/api/asistencia', async (req, res) => {
     try {
         const asistencias = await mongoose.connection.db
@@ -81,6 +47,17 @@ app.get('/api/asistencia', async (req, res) => {
         res.json(formattedAsistencias);
     } catch (error) {
         res.status(500).json({ message: 'Error al obtener asistencias', error: error.message });
+    }
+});
+
+app.post('/api/asistencia', async (req, res) => {
+    try {
+        const result = await mongoose.connection.db
+            .collection('asistencia')
+            .insertOne(req.body);
+        res.json({ message: 'Asistencia creada', data: req.body });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al crear asistencia', error: error.message });
     }
 });
 
@@ -109,71 +86,7 @@ app.delete('/api/asistencia/:id', async (req, res) => {
     }
 });
 
-// Ruta para listar todas las asistencias
-app.get('/api/asistencias', async (req, res) => {
-    try {
-        const asistencias = await Asistencia.find();
-        res.json(asistencias);
-    } catch (error) {
-        res.status(500).json({ message: 'Error al obtener las asistencias', error: error.message });
-    }
-});
-
-// Rutas para aulas
-app.post('/api/aulas', async (req, res) => {
-    try {
-        const aula = new Aula(req.body);
-        await aula.save();
-        res.json(aula);
-    } catch (error) {
-        res.status(500).json({ message: 'Error al crear el aula', error: error.message });
-    }
-});
-
-// Ruta para listar todas las aulas
-app.get('/api/aulas', async (req, res) => {
-    try {
-        const aulas = await Aula.find();
-        res.json(aulas);
-    } catch (error) {
-        res.status(500).json({ message: 'Error al obtener las aulas', error: error.message });
-    }
-});
-
-// Rutas para estudiantes
-app.post('/api/estudiantes', async (req, res) => {
-    try {
-        const estudiante = new Estudiante(req.body);
-        await estudiante.save();
-        res.json(estudiante);
-    } catch (error) {
-        res.status(500).json({ message: 'Error al crear el estudiante', error: error.message });
-    }
-});
-
-// Ruta para listar todos los estudiantes
-app.get('/api/estudiantes', async (req, res) => {
-    try {
-        const estudiantes = await Estudiante.find();
-        res.json(estudiantes);
-    } catch (error) {
-        res.status(500).json({ message: 'Error al obtener los estudiantes', error: error.message });
-    }
-});
-
-// Rutas para profesores
-app.post('/api/profesores', async (req, res) => {
-    try {
-        const profesor = new Profesor(req.body);
-        await profesor.save();
-        res.json(profesor);
-    } catch (error) {
-        res.status(500).json({ message: 'Error al crear profesor', error: error.message });
-    }
-});
-
-// Ruta para listar todos los profesores
-// Profesores routes
+// Profesores Routes
 app.get('/api/profesores', async (req, res) => {
     try {
         const profesores = await mongoose.connection.db
@@ -186,54 +99,43 @@ app.get('/api/profesores', async (req, res) => {
     }
 });
 
-// Asistencia routes
-app.get('/api/asistencia', async (req, res) => {
+app.post('/api/profesores', async (req, res) => {
     try {
-        const asistencias = await mongoose.connection.db
-            .collection('asistencia')
-            .find({})
-            .toArray();
-
-        const formattedAsistencias = asistencias.map(asistencia => ({
-            nombre_estudiante: asistencia.nombre_estudiante,
-            apellido_estudiante: asistencia.apellido_estudiante,
-            fecha: asistencia.fecha,
-            hora: asistencia.hora,
-            profesor: asistencia.profesor
-        }));
-
-        res.json(formattedAsistencias);
+        const result = await mongoose.connection.db
+            .collection('profesores')
+            .insertOne(req.body);
+        res.json({ message: 'Profesor creado', data: req.body });
     } catch (error) {
-        res.status(500).json({ message: 'Error al obtener asistencias', error: error.message });
+        res.status(500).json({ message: 'Error al crear profesor', error: error.message });
     }
 });
 
-app.put('/api/asistencia/:id', async (req, res) => {
+app.put('/api/profesores/:id', async (req, res) => {
     try {
         const result = await mongoose.connection.db
-            .collection('asistencia')
+            .collection('profesores')
             .updateOne(
                 { _id: new mongoose.Types.ObjectId(req.params.id) },
                 { $set: req.body }
             );
-        res.json({ message: 'Asistencia actualizada', result });
+        res.json({ message: 'Profesor actualizado', result });
     } catch (error) {
-        res.status(500).json({ message: 'Error al actualizar asistencia', error: error.message });
+        res.status(500).json({ message: 'Error al actualizar profesor', error: error.message });
     }
 });
 
-app.delete('/api/asistencia/:id', async (req, res) => {
+app.delete('/api/profesores/:id', async (req, res) => {
     try {
         await mongoose.connection.db
-            .collection('asistencia')
+            .collection('profesores')
             .deleteOne({ _id: new mongoose.Types.ObjectId(req.params.id) });
-        res.json({ message: 'Asistencia eliminada' });
+        res.json({ message: 'Profesor eliminado' });
     } catch (error) {
-        res.status(500).json({ message: 'Error al eliminar asistencia', error: error.message });
+        res.status(500).json({ message: 'Error al eliminar profesor', error: error.message });
     }
 });
 
-// VentaCurso routes
+// VentaCurso Routes
 app.get('/api/ventacurso', async (req, res) => {
     try {
         const result = await mongoose.connection.db
@@ -257,6 +159,21 @@ app.get('/api/ventacurso', async (req, res) => {
         }
     } catch (error) {
         res.status(500).json({ message: 'Error al obtener ventas de cursos', error: error.message });
+    }
+});
+
+app.post('/api/ventacurso', async (req, res) => {
+    try {
+        const result = await mongoose.connection.db
+            .collection('ventacurso')
+            .updateOne(
+                {},
+                { $push: { venta_cursos: req.body } },
+                { upsert: true }
+            );
+        res.json({ message: 'Venta de curso creada', data: req.body });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al crear venta de curso', error: error.message });
     }
 });
 
@@ -288,7 +205,7 @@ app.delete('/api/ventacurso/:id', async (req, res) => {
     }
 });
 
-// VentaMatricula routes
+// VentaMatricula Routes
 app.get('/api/ventamatricula', async (req, res) => {
     try {
         const matriculas = await mongoose.connection.db
@@ -306,6 +223,17 @@ app.get('/api/ventamatricula', async (req, res) => {
         res.json(formattedMatriculas);
     } catch (error) {
         res.status(500).json({ message: 'Error al obtener matrículas', error: error.message });
+    }
+});
+
+app.post('/api/ventamatricula', async (req, res) => {
+    try {
+        const result = await mongoose.connection.db
+            .collection('ventamatricula')
+            .insertOne(req.body);
+        res.json({ message: 'Matrícula creada', data: req.body });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al crear matrícula', error: error.message });
     }
 });
 
@@ -334,7 +262,7 @@ app.delete('/api/ventamatricula/:id', async (req, res) => {
     }
 });
 
-// Aulas routes
+// Aulas Routes
 app.get('/api/aulas', async (req, res) => {
     try {
         const aulas = await mongoose.connection.db
@@ -352,6 +280,17 @@ app.get('/api/aulas', async (req, res) => {
         res.json(formattedAulas);
     } catch (error) {
         res.status(500).json({ message: 'Error al obtener aulas', error: error.message });
+    }
+});
+
+app.post('/api/aulas', async (req, res) => {
+    try {
+        const result = await mongoose.connection.db
+            .collection('aulas')
+            .insertOne(req.body);
+        res.json({ message: 'Aula creada', data: req.body });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al crear aula', error: error.message });
     }
 });
 
@@ -380,7 +319,7 @@ app.delete('/api/aulas/:id', async (req, res) => {
     }
 });
 
-// Usuarios routes
+// Usuarios Routes
 app.get('/api/usuarios', async (req, res) => {
     try {
         const usuarios = await mongoose.connection.db
@@ -399,6 +338,17 @@ app.get('/api/usuarios', async (req, res) => {
         res.json(formattedUsuarios);
     } catch (error) {
         res.status(500).json({ message: 'Error al obtener usuarios', error: error.message });
+    }
+});
+
+app.post('/api/usuarios', async (req, res) => {
+    try {
+        const result = await mongoose.connection.db
+            .collection('usuarios')
+            .insertOne(req.body);
+        res.json({ message: 'Usuario creado', data: req.body });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al crear usuario', error: error.message });
     }
 });
 
@@ -431,68 +381,4 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
-});
-
-// Asistencia POST route
-app.post('/api/asistencia', async (req, res) => {
-    try {
-        const result = await mongoose.connection.db
-            .collection('asistencia')
-            .insertOne(req.body);
-        res.json({ message: 'Asistencia creada', data: req.body });
-    } catch (error) {
-        res.status(500).json({ message: 'Error al crear asistencia', error: error.message });
-    }
-});
-
-// VentaCurso POST route
-app.post('/api/ventacurso', async (req, res) => {
-    try {
-        const result = await mongoose.connection.db
-            .collection('ventacurso')
-            .updateOne(
-                {},
-                { $push: { venta_cursos: req.body } },
-                { upsert: true }
-            );
-        res.json({ message: 'Venta de curso creada', data: req.body });
-    } catch (error) {
-        res.status(500).json({ message: 'Error al crear venta de curso', error: error.message });
-    }
-});
-
-// VentaMatricula POST route
-app.post('/api/ventamatricula', async (req, res) => {
-    try {
-        const result = await mongoose.connection.db
-            .collection('ventamatricula')
-            .insertOne(req.body);
-        res.json({ message: 'Matrícula creada', data: req.body });
-    } catch (error) {
-        res.status(500).json({ message: 'Error al crear matrícula', error: error.message });
-    }
-});
-
-// Aulas POST route
-app.post('/api/aulas', async (req, res) => {
-    try {
-        const result = await mongoose.connection.db
-            .collection('aulas')
-            .insertOne(req.body);
-        res.json({ message: 'Aula creada', data: req.body });
-    } catch (error) {
-        res.status(500).json({ message: 'Error al crear aula', error: error.message });
-    }
-});
-
-// Usuarios POST route
-app.post('/api/usuarios', async (req, res) => {
-    try {
-        const result = await mongoose.connection.db
-            .collection('usuarios')
-            .insertOne(req.body);
-        res.json({ message: 'Usuario creado', data: req.body });
-    } catch (error) {
-        res.status(500).json({ message: 'Error al crear usuario', error: error.message });
-    }
 });
