@@ -65,13 +65,11 @@ app.post('/api/asistencias', async (req, res) => {
 // Ruta para listar todas las asistencias
 app.get('/api/asistencia', async (req, res) => {
     try {
-        // Get all documents from the asistencia collection
         const asistencias = await mongoose.connection.db
             .collection('asistencia')
             .find({})
             .toArray();
 
-        // Format the response data
         const formattedAsistencias = asistencias.map(asistencia => ({
             nombre_estudiante: asistencia.nombre_estudiante,
             apellido_estudiante: asistencia.apellido_estudiante,
@@ -82,42 +80,19 @@ app.get('/api/asistencia', async (req, res) => {
 
         res.json(formattedAsistencias);
     } catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ 
-            message: 'Error al obtener asistencia', 
-            error: error.message 
-        });
-    }
-});
-
-// POST route for adding new asistencia
-app.post('/api/asistencia', async (req, res) => {
-    try {
-        const result = await mongoose.connection.db
-            .collection('asistencia')
-            .updateOne(
-                {}, // empty filter to match first document
-                { $push: { asistencia: req.body } },
-                { upsert: true }
-            );
-        
-        res.json(req.body);
-    } catch (error) {
-        console.error('Error adding asistencia:', error);
-        res.status(500).json({ 
-            message: 'Error al crear asistencia', 
-            error: error.message 
-        });
+        res.status(500).json({ message: 'Error al obtener asistencias', error: error.message });
     }
 });
 
 app.put('/api/asistencia/:id', async (req, res) => {
     try {
-        const asistencia = await Asistencia.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!asistencia) {
-            return res.status(404).json({ message: 'Asistencia no encontrada' });
-        }
-        res.json(asistencia);
+        const result = await mongoose.connection.db
+            .collection('asistencia')
+            .updateOne(
+                { _id: new mongoose.Types.ObjectId(req.params.id) },
+                { $set: req.body }
+            );
+        res.json({ message: 'Asistencia actualizada', result });
     } catch (error) {
         res.status(500).json({ message: 'Error al actualizar asistencia', error: error.message });
     }
@@ -125,11 +100,10 @@ app.put('/api/asistencia/:id', async (req, res) => {
 
 app.delete('/api/asistencia/:id', async (req, res) => {
     try {
-        const asistencia = await Asistencia.findByIdAndDelete(req.params.id);
-        if (!asistencia) {
-            return res.status(404).json({ message: 'Asistencia no encontrada' });
-        }
-        res.json({ message: 'Asistencia eliminada correctamente' });
+        await mongoose.connection.db
+            .collection('asistencia')
+            .deleteOne({ _id: new mongoose.Types.ObjectId(req.params.id) });
+        res.json({ message: 'Asistencia eliminada' });
     } catch (error) {
         res.status(500).json({ message: 'Error al eliminar asistencia', error: error.message });
     }
@@ -213,130 +187,242 @@ app.get('/api/profesores', async (req, res) => {
 });
 
 // Asistencia routes
-// Asistencia route
 app.get('/api/asistencia', async (req, res) => {
     try {
-        // Get direct access to the collection
-        const collection = mongoose.connection.db.collection('asistencia');
-        
-        // Find all documents in the collection
-        const documents = await collection.find().toArray();
-        console.log('Raw documents found:', documents);
-        
-        // If we found any document, return its asistencia array
-        if (documents && documents.length > 0) {
-            const firstDoc = documents[0];
-            console.log('First document:', firstDoc);
-            res.json(firstDoc.asistencia || []);
+        const asistencias = await mongoose.connection.db
+            .collection('asistencia')
+            .find({})
+            .toArray();
+
+        const formattedAsistencias = asistencias.map(asistencia => ({
+            nombre_estudiante: asistencia.nombre_estudiante,
+            apellido_estudiante: asistencia.apellido_estudiante,
+            fecha: asistencia.fecha,
+            hora: asistencia.hora,
+            profesor: asistencia.profesor
+        }));
+
+        res.json(formattedAsistencias);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al obtener asistencias', error: error.message });
+    }
+});
+
+app.put('/api/asistencia/:id', async (req, res) => {
+    try {
+        const result = await mongoose.connection.db
+            .collection('asistencia')
+            .updateOne(
+                { _id: new mongoose.Types.ObjectId(req.params.id) },
+                { $set: req.body }
+            );
+        res.json({ message: 'Asistencia actualizada', result });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al actualizar asistencia', error: error.message });
+    }
+});
+
+app.delete('/api/asistencia/:id', async (req, res) => {
+    try {
+        await mongoose.connection.db
+            .collection('asistencia')
+            .deleteOne({ _id: new mongoose.Types.ObjectId(req.params.id) });
+        res.json({ message: 'Asistencia eliminada' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al eliminar asistencia', error: error.message });
+    }
+});
+
+// VentaCurso routes
+app.get('/api/ventacurso', async (req, res) => {
+    try {
+        const result = await mongoose.connection.db
+            .collection('ventacurso')
+            .findOne({});
+
+        if (result && result.venta_cursos) {
+            const formattedCursos = result.venta_cursos.map(curso => ({
+                cliente: curso.cliente,
+                estudiante: curso.estudiante,
+                ciclo: curso.ciclo,
+                curso: curso.curso,
+                clases: curso.clases,
+                valor_curso: curso.valor_curso,
+                debe: curso.debe,
+                estado: curso.estado
+            }));
+            res.json(formattedCursos);
         } else {
-            console.log('No documents found in asistencia collection');
             res.json([]);
         }
     } catch (error) {
-        console.error('Database error:', error);
-        res.status(500).json({ 
-            message: 'Error al obtener asistencia', 
-            error: error.message 
-        });
+        res.status(500).json({ message: 'Error al obtener ventas de cursos', error: error.message });
     }
 });
 
-app.get('/', async (req, res) => {
+app.put('/api/ventacurso/:id', async (req, res) => {
     try {
-        const collections = await mongoose.connection.db.listCollections().toArray();
-        const routes = [
-            { path: '/', description: 'Página principal con información de la API' },
-            { path: '/test', description: 'Prueba de conexión a la base de datos' }
-        ];
-        res.json({
-            message: 'Bienvenido a la API de MGA',
-            estado: 'API funcionando correctamente',
-            colecciones_disponibles: collections.map(c => c.name),
-            rutas_disponibles: routes
-        });
-    } catch (error) {
-        res.status(500).json({ error: 'Error al obtener información', details: error.message });
-    }
-});
-
-// Test route (moved outside of app.listen)
-app.get('/test', async (req, res) => {
-    try {
-        const collections = await mongoose.connection.db.listCollections().toArray();
-        res.json({ message: 'Database connected!', collections: collections.map(c => c.name) });
-    } catch (error) {
-        res.status(500).json({ error: 'Database connection failed', details: error.message });
-    }
-});
-
-// Add this test route to see raw database contents
-app.get('/api/test/asistencia', async (req, res) => {
-    try {
-        // Get all collections
-        const collections = await mongoose.connection.db.listCollections().toArray();
-        console.log('Collections:', collections.map(c => c.name));
-
-        // Get raw data from asistencia collection
-        const data = await mongoose.connection.db
-            .collection('asistencia')
-            .aggregate([
-                { $project: { _id: 1, asistencia: 1 } }
-            ]).toArray();
-        
-        res.json({
-            collections: collections.map(c => c.name),
-            rawData: data
-        });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Updated GET route for asistencia
-app.get('/api/asistencia', async (req, res) => {
-    try {
-        // Use the raw MongoDB driver to query
         const result = await mongoose.connection.db
-            .collection('asistencia')
-            .findOne({ _id: new mongoose.Types.ObjectId("67e6c2fe10365dfe08a5511d") });
-        
-        console.log('Raw database result:', result);
-        
-        if (!result) {
-            console.log('No data found');
-            return res.json([]);
-        }
-        
-        res.json(result.asistencia || []);
+            .collection('ventacurso')
+            .updateOne(
+                { "venta_cursos._id": new mongoose.Types.ObjectId(req.params.id) },
+                { $set: { "venta_cursos.$": req.body } }
+            );
+        res.json({ message: 'Venta de curso actualizada', result });
     } catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ 
-            message: 'Error al obtener asistencias', 
-            error: error.message 
-        });
+        res.status(500).json({ message: 'Error al actualizar venta de curso', error: error.message });
     }
 });
 
-// Add this diagnostic route
-app.get('/api/check', async (req, res) => {
+app.delete('/api/ventacurso/:id', async (req, res) => {
     try {
-        const db = mongoose.connection.db;
-        
-        // List all collections
-        const collections = await db.listCollections().toArray();
-        console.log('Available collections:', collections.map(c => c.name));
-        
-        // Try to get data from asistencia collection
-        const asistenciaData = await db.collection('asistencia').find().toArray();
-        console.log('Asistencia data:', asistenciaData);
-        
-        res.json({
-            collections: collections.map(c => c.name),
-            asistenciaData: asistenciaData
-        });
+        const result = await mongoose.connection.db
+            .collection('ventacurso')
+            .updateOne(
+                {},
+                { $pull: { venta_cursos: { _id: new mongoose.Types.ObjectId(req.params.id) } } }
+            );
+        res.json({ message: 'Venta de curso eliminada', result });
     } catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ message: 'Error al eliminar venta de curso', error: error.message });
+    }
+});
+
+// VentaMatricula routes
+app.get('/api/ventamatricula', async (req, res) => {
+    try {
+        const matriculas = await mongoose.connection.db
+            .collection('ventamatricula')
+            .find({})
+            .toArray();
+
+        const formattedMatriculas = matriculas.map(matricula => ({
+            cliente: matricula.cliente,
+            estudiante: matricula.estudiante,
+            fecha_inicio: matricula.fecha_inicio,
+            fecha_fin: matricula.fecha_fin
+        }));
+
+        res.json(formattedMatriculas);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al obtener matrículas', error: error.message });
+    }
+});
+
+app.put('/api/ventamatricula/:id', async (req, res) => {
+    try {
+        const result = await mongoose.connection.db
+            .collection('ventamatricula')
+            .updateOne(
+                { _id: new mongoose.Types.ObjectId(req.params.id) },
+                { $set: req.body }
+            );
+        res.json({ message: 'Matrícula actualizada', result });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al actualizar matrícula', error: error.message });
+    }
+});
+
+app.delete('/api/ventamatricula/:id', async (req, res) => {
+    try {
+        await mongoose.connection.db
+            .collection('ventamatricula')
+            .deleteOne({ _id: new mongoose.Types.ObjectId(req.params.id) });
+        res.json({ message: 'Matrícula eliminada' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al eliminar matrícula', error: error.message });
+    }
+});
+
+// Aulas routes
+app.get('/api/aulas', async (req, res) => {
+    try {
+        const aulas = await mongoose.connection.db
+            .collection('aulas')
+            .find({})
+            .toArray();
+
+        const formattedAulas = aulas.map(aula => ({
+            nombre: aula.nombre,
+            capacidad: aula.capacidad,
+            ubicacion: aula.ubicacion,
+            estado: aula.estado
+        }));
+
+        res.json(formattedAulas);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al obtener aulas', error: error.message });
+    }
+});
+
+app.put('/api/aulas/:id', async (req, res) => {
+    try {
+        const result = await mongoose.connection.db
+            .collection('aulas')
+            .updateOne(
+                { _id: new mongoose.Types.ObjectId(req.params.id) },
+                { $set: req.body }
+            );
+        res.json({ message: 'Aula actualizada', result });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al actualizar aula', error: error.message });
+    }
+});
+
+app.delete('/api/aulas/:id', async (req, res) => {
+    try {
+        await mongoose.connection.db
+            .collection('aulas')
+            .deleteOne({ _id: new mongoose.Types.ObjectId(req.params.id) });
+        res.json({ message: 'Aula eliminada' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al eliminar aula', error: error.message });
+    }
+});
+
+// Usuarios routes
+app.get('/api/usuarios', async (req, res) => {
+    try {
+        const usuarios = await mongoose.connection.db
+            .collection('usuarios')
+            .find({})
+            .toArray();
+
+        const formattedUsuarios = usuarios.map(usuario => ({
+            nombre: usuario.nombre,
+            email: usuario.email,
+            password: usuario.password,
+            rol: usuario.rol
+        }));
+
+        res.json(formattedUsuarios);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al obtener usuarios', error: error.message });
+    }
+});
+
+app.put('/api/usuarios/:id', async (req, res) => {
+    try {
+        const result = await mongoose.connection.db
+            .collection('usuarios')
+            .updateOne(
+                { _id: new mongoose.Types.ObjectId(req.params.id) },
+                { $set: req.body }
+            );
+        res.json({ message: 'Usuario actualizado', result });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al actualizar usuario', error: error.message });
+    }
+});
+
+app.delete('/api/usuarios/:id', async (req, res) => {
+    try {
+        await mongoose.connection.db
+            .collection('usuarios')
+            .deleteOne({ _id: new mongoose.Types.ObjectId(req.params.id) });
+        res.json({ message: 'Usuario eliminado' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al eliminar usuario', error: error.message });
     }
 });
 
