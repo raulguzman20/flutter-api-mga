@@ -2,6 +2,8 @@ const express = require('express');
 const connectDB = require('./config/db');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const responseHandler = require('./middleware/responseHandler');
+const errorHandler = require('./middleware/errorHandler');
 require('dotenv').config();
 
 const app = express();
@@ -10,8 +12,19 @@ const app = express();
 connectDB();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
+app.use(responseHandler);
+
+// Define routes
+const clientesRouter = require('./routes/clientes');
+
+// Use routes
+app.use('/api/clientes', clientesRouter);
 
 // Import models
 const Cliente = require('./models/Cliente');
@@ -23,13 +36,11 @@ const User = require('./models/User');
 const VentaCurso = require('./models/VentaCurso');
 const VentaMatricula = require('./models/VentaMatricula');
 
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('Connected to MongoDB successfully'))
-    .catch(err => console.error('MongoDB connection error:', err));
+// MongoDB connection is handled in config/db.js
 
 // Asistencia Routes
 // Remove this duplicate route (it appears twice in your code)
-app.get('/api/asistencia', async (req, res) => {
+app.get('/api/asistencia', async (req, res, next) => {
     try {
         const asistencias = await mongoose.connection.db
             .collection('asistencia')
@@ -37,6 +48,7 @@ app.get('/api/asistencia', async (req, res) => {
             .toArray();
 
         const formattedAsistencias = asistencias.map(asistencia => ({
+            id: asistencia._id,
             nombre_estudiante: asistencia.nombre_estudiante,
             apellido_estudiante: asistencia.apellido_estudiante,
             fecha: asistencia.fecha,
@@ -44,24 +56,23 @@ app.get('/api/asistencia', async (req, res) => {
             profesor: asistencia.profesor
         }));
 
-        res.json(formattedAsistencias);
+        res.success(formattedAsistencias, 'Asistencias obtenidas exitosamente');
     } catch (error) {
-        res.status(500).json({ message: 'Error al obtener asistencias', error: error.message });
-    }
-});
+        next(error);
+}});
 
-app.post('/api/asistencia', async (req, res) => {
+app.post('/api/asistencia', async (req, res, next) => {
     try {
         const result = await mongoose.connection.db
             .collection('asistencia')
             .insertOne(req.body);
-        res.json({ message: 'Asistencia creada', data: req.body });
+        res.success(result.ops[0], 'Asistencia creada exitosamente', 201);
     } catch (error) {
-        res.status(500).json({ message: 'Error al crear asistencia', error: error.message });
+        next(error);
     }
 });
 
-app.put('/api/asistencia/:id', async (req, res) => {
+app.put('/api/asistencia/:id', async (req, res, next) => {
     try {
         const result = await mongoose.connection.db
             .collection('asistencia')
@@ -69,33 +80,39 @@ app.put('/api/asistencia/:id', async (req, res) => {
                 { _id: new mongoose.Types.ObjectId(req.params.id) },
                 { $set: req.body }
             );
-        res.json({ message: 'Asistencia actualizada', result });
+        if (result.matchedCount === 0) {
+            return res.error('Asistencia no encontrada', 404);
+        }
+        res.success({ updated: true }, 'Asistencia actualizada exitosamente');
     } catch (error) {
-        res.status(500).json({ message: 'Error al actualizar asistencia', error: error.message });
+        next(error);
     }
 });
 
-app.delete('/api/asistencia/:id', async (req, res) => {
+app.delete('/api/asistencia/:id', async (req, res, next) => {
     try {
-        await mongoose.connection.db
+        const result = await mongoose.connection.db
             .collection('asistencia')
             .deleteOne({ _id: new mongoose.Types.ObjectId(req.params.id) });
-        res.json({ message: 'Asistencia eliminada' });
+        if (result.deletedCount === 0) {
+            return res.error('Asistencia no encontrada', 404);
+        }
+        res.success(null, 'Asistencia eliminada exitosamente');
     } catch (error) {
-        res.status(500).json({ message: 'Error al eliminar asistencia', error: error.message });
+        next(error);
     }
 });
 
 // Profesores Routes
-app.get('/api/profesores', async (req, res) => {
+app.get('/api/profesores', async (req, res, next) => {
     try {
         const profesores = await mongoose.connection.db
             .collection('profesores')
             .find({})
             .toArray();
-        res.json(profesores);
+        res.success(profesores, 'Profesores obtenidos exitosamente');
     } catch (error) {
-        res.status(500).json({ message: 'Error al obtener profesores', error: error.message });
+        next(error);
     }
 });
 
@@ -374,6 +391,115 @@ app.delete('/api/usuarios/:id', async (req, res) => {
         res.json({ message: 'Usuario eliminado' });
     } catch (error) {
         res.status(500).json({ message: 'Error al eliminar usuario', error: error.message });
+    }
+});
+
+// Cliente Routes
+app.get('/api/cliente', async (req, res) => {
+    try {
+        // Get direct access to the collection
+        const collection = mongoose.connection.db.collection('cliente');
+        
+        // Find all documents and log them
+        const documents = await collection.find().toArray();
+        console.log('Raw documents found:', documents);
+        
+        // If we found any documents, process them
+        if (documents && documents.length > 0) {
+            const firstDoc = documents[0];
+            console.log('First document:', firstDoc);
+            
+            if (firstDoc.clientes && Array.isArray(firstDoc.clientes)) {
+                res.json(firstDoc.clientes);
+            } else {
+                console.log('No clientes array found in document');
+                res.json([]);
+            }
+        } else {
+            console.log('No documents found in cliente collection');
+            res.json([]);
+        }
+    } catch (error) {
+        console.error('Database error:', error);
+        res.status(500).json({ 
+            message: 'Error al obtener clientes', 
+            error: error.message 
+        });
+    }
+});
+
+app.post('/api/cliente', async (req, res) => {
+    try {
+        const result = await mongoose.connection.db
+            .collection('cliente')
+            .updateOne(
+                {},
+                { $push: { clientes: req.body } },
+                { upsert: true }
+            );
+        res.json({ message: 'Cliente creado', data: req.body });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al crear cliente', error: error.message });
+    }
+});
+
+app.put('/api/cliente/:id', async (req, res) => {
+    try {
+        const result = await mongoose.connection.db
+            .collection('cliente')
+            .updateOne(
+                { "clientes._id": new mongoose.Types.ObjectId(req.params.id) },
+                { $set: { "clientes.$": req.body } }
+            );
+        res.json({ message: 'Cliente actualizado', result });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al actualizar cliente', error: error.message });
+    }
+});
+
+app.delete('/api/cliente/:id', async (req, res) => {
+    try {
+        const result = await mongoose.connection.db
+            .collection('cliente')
+            .updateOne(
+                {},
+                { $pull: { clientes: { _id: new mongoose.Types.ObjectId(req.params.id) } } }
+            );
+        res.json({ message: 'Cliente eliminado', result });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al eliminar cliente', error: error.message });
+    }
+});
+
+// Add this temporary diagnostic route
+app.get('/api/debug/collections', async (req, res) => {
+    try {
+        // List all collections
+        const collections = await mongoose.connection.db.listCollections().toArray();
+        console.log('Available collections:', collections.map(c => c.name));
+        
+        // Try to find the cliente collection (case insensitive)
+        const clienteCollection = collections.find(c => 
+            c.name.toLowerCase().includes('client') || 
+            c.name.toLowerCase().includes('clientes')
+        );
+        
+        if (clienteCollection) {
+            // If found, query that collection
+            const data = await mongoose.connection.db
+                .collection(clienteCollection.name)
+                .find()
+                .toArray();
+            console.log('Data in collection:', data);
+        }
+        
+        res.json({
+            collections: collections.map(c => c.name),
+            clienteCollection: clienteCollection ? clienteCollection.name : null
+        });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: error.message });
     }
 });
 
