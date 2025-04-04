@@ -1,26 +1,18 @@
 const mongoose = require('mongoose');
 
 const asistenciaSchema = new mongoose.Schema({
-    nombre_estudiante: {
-        type: String,
-        required: true
-    },
-    apellido_estudiante: {
-        type: String,
-        required: true
-    },
-    fecha: {
-        type: Date,
-        required: true
-    },
-    hora: {
-        type: String,
-        required: true
-    },
-    profesor: {
-        type: String,
-        required: true
-    }
+    asistencia: [{
+        nombre_estudiante: String,
+        apellido_estudiante: String,
+        fecha: String,
+        hora: String,
+        profesor: String
+    }]
+}, { 
+    collection: 'asistencia',
+    strict: false,
+    timestamps: false
 });
 
-module.exports = mongoose.model('Asistencia', asistenciaSchema);
+const Asistencia = mongoose.model('Asistencia', asistenciaSchema);
+module.exports = Asistencia;
